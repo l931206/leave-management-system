@@ -4,37 +4,166 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}兆迪聯智科技有限公司｜請假系統{% endblock %}</title>
+  <meta name="theme-color" content="#2f855a">
+  <title>{% block title %}兆迪聯智科技有限公司{% endblock %}</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-<nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top">
-  <div class="container">
-    <a class="navbar-brand fw-bold" href="{% url 'dashboard' %}">兆迪聯智科技有限公司</a>
-    {% if user.is_authenticated %}
-    <div class="d-flex align-items-center gap-2">
-      <span class="small text-secondary d-none d-md-inline">
-        {{ user.get_full_name|default:user.username }}
+
+{% if user.is_authenticated %}
+<div class="app-shell">
+  <aside class="sidebar d-none d-lg-flex">
+    <a class="brand" href="{% url 'dashboard' %}">
+      <span class="brand-mark">兆</span>
+      <span class="brand-copy">
+        <strong>兆迪聯智科技有限公司</strong>
+        <small>員工請假與出勤管理系統</small>
+      </span>
+    </a>
+
+    <nav class="sidebar-nav">
+      <span class="nav-label">工作台</span>
+      <a class="sidebar-link active" href="{% url 'dashboard' %}">
+        <i class="bi bi-house-door-fill"></i><span>首頁儀表板</span>
+      </a>
+
+      {% if user.profile.role == "employee" %}
+      <span class="nav-label nav-label-spaced">請假管理</span>
+      <a class="sidebar-link" href="{% url 'create_leave' %}">
+        <i class="bi bi-calendar2-plus"></i><span>新增請假</span>
+      </a>
+      <a class="sidebar-link" href="{% url 'dashboard' %}#my-requests">
+        <i class="bi bi-journal-text"></i><span>我的請假紀錄</span>
+      </a>
+
+      <span class="nav-label nav-label-spaced">其他功能</span>
+      <a class="sidebar-link" href="{% url 'create_late_notice' %}">
+        <i class="bi bi-clock-history"></i><span>晚到通知</span>
+      </a>
+      {% else %}
+      <span class="nav-label nav-label-spaced">主管功能</span>
+      <a class="sidebar-link" href="{% url 'dashboard' %}#pending">
+        <i class="bi bi-clipboard2-check"></i><span>請假審核</span>
+      </a>
+      <a class="sidebar-link" href="{% url 'dashboard' %}#late">
+        <i class="bi bi-clock"></i><span>晚到通知</span>
+      </a>
+      <a class="sidebar-link" href="{% url 'export_csv' %}">
+        <i class="bi bi-file-earmark-spreadsheet"></i><span>匯出報表</span>
+      </a>
+      {% endif %}
+
+      <span class="nav-label nav-label-spaced">規劃功能</span>
+      <span class="sidebar-link disabled-link"><i class="bi bi-megaphone"></i><span>公告中心</span><small>規劃中</small></span>
+      <span class="sidebar-link disabled-link"><i class="bi bi-calendar3"></i><span>行事曆</span><small>規劃中</small></span>
+      <span class="sidebar-link disabled-link"><i class="bi bi-bar-chart"></i><span>統計分析</span><small>規劃中</small></span>
+    </nav>
+
+    <div class="sidebar-user">
+      <span class="avatar">{{ user.last_name|default:user.username|slice:":1" }}</span>
+      <span class="sidebar-user-copy">
+        <strong>{{ user.get_full_name|default:user.username }}</strong>
+        <small>{{ user.profile.get_role_display }}</small>
       </span>
       <form action="{% url 'logout' %}" method="post">
         {% csrf_token %}
-        <button class="btn btn-outline-secondary btn-sm">登出</button>
+        <button class="icon-btn" title="登出"><i class="bi bi-box-arrow-right"></i></button>
       </form>
     </div>
-    {% endif %}
+  </aside>
+
+  <div class="app-main">
+    <header class="topbar">
+      <button class="icon-btn d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNav">
+        <i class="bi bi-list"></i>
+      </button>
+      <div class="topbar-title">
+        <strong>兆迪聯智科技有限公司</strong>
+        <span>／</span>
+        <small>員工請假與出勤管理系統</small>
+      </div>
+      <div class="topbar-right">
+        <span class="system-online"><i></i>系統正常</span>
+        <div class="live-clock d-none d-md-block">
+          <strong id="liveTime">--:--:--</strong>
+          <small id="liveDate">----/--/--</small>
+        </div>
+        <span class="topbar-avatar">{{ user.last_name|default:user.username|slice:":1" }}</span>
+      </div>
+    </header>
+
+    <main class="content-area">
+      {% for message in messages %}
+      <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show app-alert" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+      {% endfor %}
+      {% block content %}{% endblock %}
+    </main>
   </div>
-</nav>
+</div>
 
-<main class="container py-4">
+<div class="offcanvas offcanvas-start mobile-nav" tabindex="-1" id="mobileNav">
+  <div class="offcanvas-header">
+    <a class="brand" href="{% url 'dashboard' %}">
+      <span class="brand-mark">兆</span>
+      <span class="brand-copy">
+        <strong>兆迪聯智科技有限公司</strong>
+        <small>員工請假與出勤管理系統</small>
+      </span>
+    </a>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body">
+    <a class="sidebar-link active" href="{% url 'dashboard' %}">
+      <i class="bi bi-house-door-fill"></i><span>首頁儀表板</span>
+    </a>
+    {% if user.profile.role == "employee" %}
+    <a class="sidebar-link" href="{% url 'create_leave' %}">
+      <i class="bi bi-calendar2-plus"></i><span>新增請假</span>
+    </a>
+    <a class="sidebar-link" href="{% url 'create_late_notice' %}">
+      <i class="bi bi-clock-history"></i><span>晚到通知</span>
+    </a>
+    {% else %}
+    <a class="sidebar-link" href="{% url 'dashboard' %}#pending">
+      <i class="bi bi-clipboard2-check"></i><span>請假審核</span>
+    </a>
+    <a class="sidebar-link" href="{% url 'dashboard' %}#late">
+      <i class="bi bi-clock"></i><span>晚到通知</span>
+    </a>
+    <a class="sidebar-link" href="{% url 'export_csv' %}">
+      <i class="bi bi-file-earmark-spreadsheet"></i><span>匯出報表</span>
+    </a>
+    {% endif %}
+    <form action="{% url 'logout' %}" method="post" class="mt-4">
+      {% csrf_token %}
+      <button class="btn btn-outline-light w-100">登出</button>
+    </form>
+  </div>
+</div>
+
+{% else %}
+<main class="public-main">
   {% for message in messages %}
+  <div class="container pt-3">
     <div class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+  </div>
   {% endfor %}
-  {% block content %}{% endblock %}
+  {% block content_public %}{% endblock %}
 </main>
+{% endif %}
 
-<footer class="container pb-4 text-center text-secondary small">
-  員工請假與晚到通知系統
-</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% block scripts %}{% endblock %}
 </body>
 </html>
