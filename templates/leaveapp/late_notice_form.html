@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="form-wrap">
+  <div class="mb-3">
+    <a href="{% url 'dashboard' %}">← 返回首頁</a>
+  </div>
+  <div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+      <h1 class="h3 fw-bold mb-2">晚到通知主管</h1>
+      <p class="text-secondary">請填寫預計到達時間與晚到原因，送出後會顯示在主管工作台。</p>
+      <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="mb-3">
+          <label class="form-label fw-semibold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% for error in field.errors %}
+            <div class="text-danger small mt-1">{{ error }}</div>
+          {% endfor %}
+        </div>
+        {% endfor %}
+        <button class="btn btn-warning">送出通知</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

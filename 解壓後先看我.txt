@@ -1,0 +1,21 @@
+這是整理後的單層專案版本。
+
+解壓縮後，進入 leave-management-system 資料夾，
+應直接看到 manage.py、config、leaveapp、templates、static、docs 等內容。
+
+首次執行：
+1. python -m venv .venv
+2. PowerShell 可直接使用：
+   .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+   .\.venv\Scripts\python.exe manage.py migrate
+   .\.venv\Scripts\python.exe manage.py seed_demo
+   .\.venv\Scripts\python.exe manage.py runserver
+
+本壓縮檔已移除：
+- 多餘的第二層同名資料夾
+- .git
+- .venv
+- __pycache__
+- .pyc
+
+保留 db.sqlite3 作為 Demo 資料庫。

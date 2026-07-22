@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="hero-panel mb-4">
+  <div>
+    <div class="eyebrow">{{ profile.get_role_display }}工作台</div>
+    <h1 class="display-title">你好，{{ user.get_full_name|default:user.username }}</h1>
+    {% if profile.role == "employee" %}
+      <p class="hero-subtitle">快速完成請假與晚到通知，並隨時掌握申請進度。</p>
+    {% else %}
+      <p class="hero-subtitle">集中處理團隊請假、晚到通知與近期出勤狀態。</p>
+    {% endif %}
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    {% if profile.role == "employee" %}
+      <a class="btn btn-primary btn-lg" href="{% url 'create_leave' %}">＋ 新增請假</a>
+      <a class="btn btn-warning btn-lg" href="{% url 'create_late_notice' %}">晚到通知</a>
+    {% else %}
+      <a class="btn btn-outline-primary btn-lg" href="{% url 'export_csv' %}">匯出 CSV</a>
+      {% if profile.role == "admin" %}
+        <a class="btn btn-dark btn-lg" href="/admin/">系統管理</a>
+      {% endif %}
+    {% endif %}
+  </div>
+</div>
+
+{% if profile.role != "employee" %}
+<div class="row g-3 mb-4">
+  <div class="col-6 col-xl-3"><div class="metric-card"><div class="metric-icon blue">待</div><div><div class="metric-value">{{ pending_count }}</div><div class="metric-label">待審核請假</div></div></div></div>
+  <div class="col-6 col-xl-3"><div class="metric-card"><div class="metric-icon amber">遲</div><div><div class="metric-value">{{ late_today_count }}</div><div class="metric-label">今日晚到</div></div></div></div>
+  <div class="col-6 col-xl-3"><div class="metric-card"><div class="metric-icon green">准</div><div><div class="metric-value">{{ approved_month_count }}</div><div class="metric-label">本月已核准</div></div></div></div>
+  <div class="col-6 col-xl-3"><div class="metric-card"><div class="metric-icon slate">員</div><div><div class="metric-value">{{ team_members_count }}</div><div class="metric-label">管理員工數</div></div></div></div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-xl-8">
+    <div class="section-card h-100">
+      <div class="section-header"><div><div class="section-kicker">ACTION CENTER</div><h2>待辦中心</h2></div><span class="count-pill">{{ pending_count }} 筆</span></div>
+      {% if pending_requests %}
+      <div class="table-responsive"><table class="table modern-table align-middle mb-0">
+        <thead><tr><th>員工</th><th>假別</th><th>請假區間</th><th>時數</th><th></th></tr></thead>
+        <tbody>{% for item in pending_requests %}<tr>
+          <td><div class="person-cell"><span class="avatar">{{ item.employee.last_name|default:item.employee.username|slice:":1" }}</span><div><strong>{{ item.employee.get_full_name|default:item.employee.username }}</strong><small>{{ item.created_at|date:"m/d H:i" }} 送出</small></div></div></td>
+          <td><span class="soft-badge">{{ item.leave_type.name }}</span></td>
+          <td>{{ item.start_datetime|date:"m/d H:i" }}－{{ item.end_datetime|date:"m/d H:i" }}</td>
+          <td>{{ item.duration_hours }}</td>
+          <td class="text-end"><a class="btn btn-sm btn-primary" href="{% url 'leave_detail' item.id %}">立即處理</a></td>
+        </tr>{% endfor %}</tbody>
+      </table></div>
+      {% else %}<div class="empty-state"><div class="empty-icon">✓</div><strong>目前沒有待辦</strong><span>所有請假都已處理完成。</span></div>{% endif %}
+    </div>
+  </div>
+  <div class="col-xl-4">
+    <div class="section-card h-100">
+      <div class="section-header"><div><div class="section-kicker">TODAY</div><h2>今日晚到通知</h2></div></div>
+      {% if today_late_notices %}{% for notice in today_late_notices %}
+      <div class="late-card {% if notice.viewed %}viewed{% endif %}">
+        <div class="d-flex justify-content-between gap-2"><strong>{{ notice.employee.get_full_name|default:notice.employee.username }}</strong><span class="time-chip">{{ notice.expected_arrival|time:"H:i" }}</span></div>
+        <p>{{ notice.reason }}</p>
+        <div class="d-flex justify-content-between align-items-center"><small>{{ notice.created_at|date:"H:i" }} 通知</small>{% if not notice.viewed %}<form method="post" action="{% url 'mark_late_viewed' notice.id %}">{% csrf_token %}<button class="btn btn-sm btn-outline-secondary">標記已查看</button></form>{% else %}<span class="checked-text">✓ 已查看</span>{% endif %}</div>
+      </div>{% endfor %}
+      {% else %}<div class="empty-state compact"><div class="empty-icon">☀</div><strong>今天無晚到通知</strong></div>{% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-7"><div class="section-card h-100"><div class="section-header"><div><div class="section-kicker">RECENT</div><h2>近期處理紀錄</h2></div></div>
+  {% if recent_team_requests %}<div class="activity-list">{% for item in recent_team_requests %}<a class="activity-item" href="{% url 'leave_detail' item.id %}"><span class="status-dot {{ item.status }}"></span><div class="activity-main"><strong>{{ item.employee.get_full_name|default:item.employee.username }} · {{ item.leave_type.name }}</strong><small>{{ item.start_datetime|date:"Y/m/d H:i" }}，共 {{ item.duration_hours }} 小時</small></div><span class="status-text {{ item.status }}">{{ item.get_status_display }}</span></a>{% endfor %}</div>{% else %}<div class="empty-state compact"><strong>尚無處理紀錄</strong></div>{% endif %}
+  </div></div>
+  <div class="col-lg-5"><div class="section-card h-100"><div class="section-header"><div><div class="section-kicker">OVERVIEW</div><h2>本月審核概況</h2></div></div>
+    <div class="approval-score"><div class="score-ring" style="--score: {{ approval_rate }}"><span>{{ approval_rate }}%</span></div><div><strong>核准率</strong><p>已核准 {{ approved_month_count }} 筆，已退回 {{ rejected_month_count }} 筆。</p></div></div>
+    <div class="divider"></div><h3 class="h6 fw-bold">今日休假人員</h3>
+    {% if team_on_leave_today %}{% for item in team_on_leave_today %}<div class="onleave-row"><span class="avatar small-avatar">{{ item.employee.last_name|default:item.employee.username|slice:":1" }}</span><div><strong>{{ item.employee.get_full_name|default:item.employee.username }}</strong><small>{{ item.leave_type.name }} · 至 {{ item.end_datetime|date:"m/d H:i" }}</small></div></div>{% endfor %}{% else %}<p class="text-secondary small mb-0">今天沒有核准中的休假。</p>{% endif %}
+  </div></div>
+</div>
+{% else %}
+<div class="row g-3 mb-4">
+  {% for balance in balances %}<div class="col-6 col-lg-3"><div class="balance-card"><span>{{ balance.leave_type.name }}</span><strong>{{ balance.remaining_hours }}</strong><small>剩餘小時</small></div></div>{% empty %}<div class="col-12"><div class="alert alert-light border">尚未設定假期額度。</div></div>{% endfor %}
+</div>
+<div class="row g-4">
+  <div class="col-lg-8"><div class="section-card"><div class="section-header"><div><div class="section-kicker">MY REQUESTS</div><h2>我的請假紀錄</h2></div></div>
+  {% if my_requests %}<div class="table-responsive"><table class="table modern-table align-middle mb-0"><thead><tr><th>假別</th><th>時間</th><th>時數</th><th>狀態</th><th></th></tr></thead><tbody>{% for item in my_requests %}<tr><td><span class="soft-badge">{{ item.leave_type.name }}</span></td><td>{{ item.start_datetime|date:"Y/m/d H:i" }}－{{ item.end_datetime|date:"m/d H:i" }}</td><td>{{ item.duration_hours }}</td><td><span class="status-text {{ item.status }}">{{ item.get_status_display }}</span></td><td><a href="{% url 'leave_detail' item.id %}">查看</a></td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="empty-state"><strong>尚無請假紀錄</strong><span>點選上方「新增請假」開始申請。</span></div>{% endif %}
+  </div></div>
+  <div class="col-lg-4"><div class="section-card"><div class="section-header"><div><div class="section-kicker">LATE NOTICE</div><h2>我的晚到通知</h2></div></div>{% if my_late_notices %}{% for notice in my_late_notices %}<div class="late-card"><div class="d-flex justify-content-between"><strong>{{ notice.date|date:"Y/m/d" }}</strong><span class="time-chip">{{ notice.expected_arrival|time:"H:i" }}</span></div><p>{{ notice.reason }}</p><small>{% if notice.viewed %}主管已查看{% else %}等待主管查看{% endif %}</small></div>{% endfor %}{% else %}<div class="empty-state compact"><strong>尚無晚到通知</strong></div>{% endif %}</div></div>
+</div>
+{% endif %}
+{% endblock %}
