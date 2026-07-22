@@ -1,9 +1,23 @@
-.venv/
+# Python
 __pycache__/
-*.pyc
-db.sqlite3
-media/*
-!media/.gitkeep
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+
+# Django generated files
 staticfiles/
+
+# Environment variables
 .env
+
+# Editor / OS
+.vscode/
+.idea/
 .DS_Store
+Thumbs.db
+
+# Logs
+*.log

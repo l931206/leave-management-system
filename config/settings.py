@@ -1,14 +1,33 @@
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = "dev-only-change-me-before-production"
-DEBUG = True
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-only-change-me-before-production")
+DEBUG = os.getenv("DEBUG", "True").lower() in ("1", "true", "yes", "on")
+
+render_hostname = os.getenv("RENDER_EXTERNAL_HOSTNAME", "")
+allowed_hosts_env = os.getenv("ALLOWED_HOSTS", "")
+
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
     "10.1.3.22",
 ]
+
+if render_hostname:
+    ALLOWED_HOSTS.append(render_hostname)
+
+if allowed_hosts_env:
+    ALLOWED_HOSTS.extend(
+        host.strip()
+        for host in allowed_hosts_env.split(",")
+        if host.strip()
+    )
+
+CSRF_TRUSTED_ORIGINS = []
+if render_hostname:
+    CSRF_TRUSTED_ORIGINS.append(f"https://{render_hostname}")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -22,6 +41,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -50,6 +70,9 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
+# Sprint 4 展示版先使用 SQLite。
+# Render 免費 Web Service 的本機檔案系統不是永久儲存；
+# 正式上線時應改用 PostgreSQL。
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -64,11 +87,19 @@ TIME_ZONE = "Asia/Taipei"
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
-MEDIA_URL = "media/"
+MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -79,3 +110,9 @@ LOGOUT_REDIRECT_URL = "login"
 
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
 DATA_UPLOAD_MAX_MEMORY_SIZE = 8 * 1024 * 1024
+
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = False
