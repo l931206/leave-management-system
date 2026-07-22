@@ -1,27 +1,52 @@
 {% extends "base.html" %}
+{% block title %}晚到通知｜兆迪聯智科技有限公司{% endblock %}
 {% block content %}
-<div class="form-wrap">
-  <div class="mb-3">
-    <a href="{% url 'dashboard' %}">← 返回首頁</a>
+<section class="page-heading compact-heading">
+  <div>
+    <span class="eyebrow">LATE NOTICE</span>
+    <h1>晚到通知主管</h1>
+    <p>填寫預計到達時間與原因，送出後主管可立即查看。</p>
   </div>
-  <div class="card shadow-sm border-0">
-    <div class="card-body p-4">
-      <h1 class="h3 fw-bold mb-2">晚到通知主管</h1>
-      <p class="text-secondary">請填寫預計到達時間與晚到原因，送出後會顯示在主管工作台。</p>
-      <form method="post">
-        {% csrf_token %}
+  <a class="btn-enterprise secondary" href="{% url 'dashboard' %}">
+    <i class="bi bi-arrow-left"></i>返回工作台
+  </a>
+</section>
+
+<div class="form-page-grid">
+  <article class="enterprise-panel form-panel">
+    <header class="panel-header">
+      <div><span class="eyebrow">NOTICE FORM</span><h2>晚到資料</h2></div>
+      <span class="live-tag">約 30 秒完成</span>
+    </header>
+
+    <form method="post" class="enterprise-form">
+      {% csrf_token %}
+      <div class="form-grid">
         {% for field in form %}
-        <div class="mb-3">
-          <label class="form-label fw-semibold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        <div class="form-field {% if field.name == 'reason' %}full-width{% endif %}">
+          <label for="{{ field.id_for_label }}">
+            {{ field.label }}{% if field.field.required %}<b>＊</b>{% endif %}
+          </label>
           {{ field }}
-          {% for error in field.errors %}
-            <div class="text-danger small mt-1">{{ error }}</div>
-          {% endfor %}
+          {% for error in field.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
         </div>
         {% endfor %}
-        <button class="btn btn-warning">送出通知</button>
-      </form>
-    </div>
-  </div>
+      </div>
+
+      <div class="form-actions">
+        <a class="btn-enterprise secondary" href="{% url 'dashboard' %}">取消</a>
+        <button class="btn-enterprise primary" type="submit"><i class="bi bi-bell"></i>送出通知</button>
+      </div>
+    </form>
+  </article>
+
+  <aside class="form-side">
+    <article class="enterprise-panel info-panel">
+      <span class="info-icon"><i class="bi bi-clock-history"></i></span>
+      <h3>此功能屬於即時通知</h3>
+      <p>晚到通知不需要主管核准，也不會直接扣除請假餘額。</p>
+      <div class="soft-illustration"><i class="bi bi-alarm"></i></div>
+    </article>
+  </aside>
 </div>
 {% endblock %}

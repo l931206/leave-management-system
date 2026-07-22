@@ -1,33 +1,60 @@
 {% extends "base.html" %}
-{% block title %}登入｜請假系統{% endblock %}
-{% block content %}
-<div class="login-wrap">
-  <div class="card shadow-sm border-0">
-    <div class="card-body p-4 p-md-5">
-      <h1 class="h3 fw-bold mb-2">員工請假系統</h1>
-      <p class="text-secondary mb-4">請使用公司帳號登入</p>
+{% block title %}登入｜兆迪聯智科技有限公司{% endblock %}
+{% block content_public %}
+<section class="login-page">
+  <div class="login-visual">
+    <div class="login-brand">
+      <span class="brand-mark large">兆</span>
+      <div>
+        <strong>兆迪聯智科技有限公司</strong>
+        <small>員工請假與出勤管理系統</small>
+      </div>
+    </div>
+
+    <div class="login-visual-copy">
+      <h1>兆迪聯智科技有限公司</h1>
+      <h2>員工請假與出勤管理系統</h2>
+    </div>
+  </div>
+
+  <div class="login-panel">
+    <div class="login-card">
+      <span class="eyebrow">EMPLOYEE LOGIN</span>
+      <h2>登入員工系統</h2>
+      <p class="login-subtitle">請使用公司提供的帳號與密碼。</p>
+
       {% if form.errors %}
-      <div class="alert alert-danger">帳號或密碼錯誤。</div>
+      <div class="login-error"><i class="bi bi-exclamation-circle"></i>帳號或密碼錯誤，請重新輸入。</div>
       {% endif %}
-      <form method="post">
+
+      <form method="post" class="login-form">
         {% csrf_token %}
-        <div class="mb-3">
-          <label class="form-label" for="id_username">帳號</label>
-          <input class="form-control" type="text" name="username" autofocus required id="id_username">
+        <label for="id_username">帳號</label>
+        <div class="input-with-icon">
+          <i class="bi bi-person"></i>
+          <input type="text" name="username" autofocus required id="id_username" placeholder="請輸入帳號">
         </div>
-        <div class="mb-4">
-          <label class="form-label" for="id_password">密碼</label>
-          <input class="form-control" type="password" name="password" required id="id_password">
+
+        <label for="id_password">密碼</label>
+        <div class="input-with-icon">
+          <i class="bi bi-lock"></i>
+          <input type="password" name="password" required id="id_password" placeholder="請輸入密碼">
         </div>
-        <button class="btn btn-primary w-100">登入</button>
+
+        <button class="login-button" type="submit">
+          登入系統<i class="bi bi-arrow-right"></i>
+        </button>
       </form>
-      <div class="demo-box mt-4">
-        <strong>展示帳號</strong><br>
-        員工：employee / demo1234<br>
-        主管：manager / demo1234<br>
-        管理者：admin / demo1234
+
+      <div class="demo-accounts">
+        <div class="demo-title"><i class="bi bi-info-circle"></i>展示帳號</div>
+        <div class="demo-grid">
+          <div><span>員工</span><code>employee</code><small>demo1234</small></div>
+          <div><span>主管</span><code>manager</code><small>demo1234</small></div>
+          <div><span>管理者</span><code>admin</code><small>demo1234</small></div>
+        </div>
       </div>
     </div>
   </div>
-</div>
+</section>
 {% endblock %}

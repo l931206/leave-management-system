@@ -1,80 +1,69 @@
 {% extends "base.html" %}
+{% block title %}請假詳情｜兆迪聯智科技有限公司{% endblock %}
 {% block content %}
-<div class="mb-3">
-  <a href="{% url 'dashboard' %}">← 返回首頁</a>
-</div>
-<div class="row g-4">
-  <div class="col-lg-7">
-    <div class="card shadow-sm border-0">
-      <div class="card-body p-4">
-        <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
-          <div>
-            <h1 class="h3 fw-bold mb-1">{{ leave_request.leave_type.name }}</h1>
-            <div class="text-secondary">
-              {{ leave_request.employee.get_full_name|default:leave_request.employee.username }}
-            </div>
-          </div>
-          <span class="badge text-bg-secondary fs-6">{{ leave_request.get_status_display }}</span>
-        </div>
-
-        <dl class="row mb-0">
-          <dt class="col-sm-3">開始時間</dt>
-          <dd class="col-sm-9">{{ leave_request.start_datetime|date:"Y/m/d H:i" }}</dd>
-          <dt class="col-sm-3">結束時間</dt>
-          <dd class="col-sm-9">{{ leave_request.end_datetime|date:"Y/m/d H:i" }}</dd>
-          <dt class="col-sm-3">請假時數</dt>
-          <dd class="col-sm-9">{{ leave_request.duration_hours }} 小時</dd>
-          <dt class="col-sm-3">原因</dt>
-          <dd class="col-sm-9">{{ leave_request.reason|linebreaksbr }}</dd>
-          <dt class="col-sm-3">直屬主管</dt>
-          <dd class="col-sm-9">
-            {% if leave_request.manager %}
-              {{ leave_request.manager.get_full_name|default:leave_request.manager.username }}
-            {% else %}未設定{% endif %}
-          </dd>
-          {% if leave_request.attachment %}
-          <dt class="col-sm-3">附件</dt>
-          <dd class="col-sm-9"><a href="{{ leave_request.attachment.url }}" target="_blank">開啟附件</a></dd>
-          {% endif %}
-          {% if leave_request.manager_comment %}
-          <dt class="col-sm-3">主管備註</dt>
-          <dd class="col-sm-9">{{ leave_request.manager_comment|linebreaksbr }}</dd>
-          {% endif %}
-        </dl>
-
-        {% if leave_request.employee_id == user.id and leave_request.status == "pending" %}
-        <form method="post" action="{% url 'cancel_leave' leave_request.id %}" class="mt-4">
-          {% csrf_token %}
-          <button class="btn btn-outline-danger" onclick="return confirm('確定取消這筆申請？')">取消申請</button>
-        </form>
-        {% endif %}
-      </div>
-    </div>
+<section class="page-heading compact-heading">
+  <div>
+    <span class="eyebrow">REQUEST DETAIL</span>
+    <h1>請假申請詳情</h1>
+    <p>查看申請內容、目前狀態與主管處理結果。</p>
   </div>
+  <a class="btn-enterprise secondary" href="{% url 'dashboard' %}">
+    <i class="bi bi-arrow-left"></i>返回工作台
+  </a>
+</section>
 
-  {% if user.profile.role != "employee" and user.id == leave_request.manager_id or user.profile.role == "admin" %}
-  <div class="col-lg-5">
-    <div class="card shadow-sm border-0">
-      <div class="card-body p-4">
-        <h2 class="h5 fw-bold">主管處理</h2>
-        {% if leave_request.status == "pending" %}
-        <form method="post">
-          {% csrf_token %}
-          <div class="mb-3">
-            <label class="form-label" for="id_comment">主管備註</label>
-            <textarea class="form-control" name="comment" rows="4" id="id_comment" placeholder="核准可留空；退回時必填原因"></textarea>
-          </div>
-          <div class="d-flex gap-2">
-            <button formaction="{% url 'approve_leave' leave_request.id %}" class="btn btn-success">核准</button>
-            <button formaction="{% url 'reject_leave' leave_request.id %}" class="btn btn-danger">退回</button>
-          </div>
-        </form>
-        {% else %}
-          <p class="text-secondary mb-0">這筆申請已處理。</p>
-        {% endif %}
+<div class="detail-grid">
+  <article class="enterprise-panel detail-panel">
+    <header class="detail-header">
+      <div class="person-cell">
+        <span class="person-avatar large">{{ leave_request.employee.last_name|default:leave_request.employee.username|slice:":1" }}</span>
+        <span><small>申請人</small><strong>{{ leave_request.employee.get_full_name|default:leave_request.employee.username }}</strong></span>
       </div>
+      <span class="status-badge {{ leave_request.status }}">{{ leave_request.get_status_display }}</span>
+    </header>
+
+    <div class="detail-body">
+      <div class="detail-item"><small>假別</small><strong>{{ leave_request.leave_type.name }}</strong></div>
+      <div class="detail-item"><small>開始時間</small><strong>{{ leave_request.start_datetime|date:"Y/m/d H:i" }}</strong></div>
+      <div class="detail-item"><small>結束時間</small><strong>{{ leave_request.end_datetime|date:"Y/m/d H:i" }}</strong></div>
+      <div class="detail-item"><small>請假時數</small><strong>{{ leave_request.duration_hours }} 小時</strong></div>
+      <div class="detail-item full"><small>請假原因</small><p>{{ leave_request.reason|linebreaksbr }}</p></div>
+      <div class="detail-item"><small>直屬主管</small><strong>{% if leave_request.manager %}{{ leave_request.manager.get_full_name|default:leave_request.manager.username }}{% else %}未設定{% endif %}</strong></div>
+      {% if leave_request.attachment %}
+      <div class="detail-item"><small>附件</small><a class="attachment-link" href="{{ leave_request.attachment.url }}" target="_blank"><i class="bi bi-paperclip"></i>開啟附件</a></div>
+      {% endif %}
+      {% if leave_request.manager_comment %}
+      <div class="detail-item full manager-comment"><small>主管備註</small><p>{{ leave_request.manager_comment|linebreaksbr }}</p></div>
+      {% endif %}
     </div>
-  </div>
+
+    {% if leave_request.employee_id == user.id and leave_request.status == "pending" %}
+    <footer class="detail-footer">
+      <form method="post" action="{% url 'cancel_leave' leave_request.id %}">
+        {% csrf_token %}
+        <button class="btn-enterprise danger-outline" onclick="return confirm('確定取消這筆申請？')">取消申請</button>
+      </form>
+    </footer>
+    {% endif %}
+  </article>
+
+  {% if user.profile.role != "employee" %}
+  <aside class="enterprise-panel review-panel">
+    <header class="panel-header"><div><span class="eyebrow">MANAGER ACTION</span><h2>主管處理</h2></div></header>
+    {% if leave_request.status == "pending" %}
+    <form method="post" class="review-form">
+      {% csrf_token %}
+      <label for="id_comment">主管備註</label>
+      <textarea name="comment" rows="5" id="id_comment" placeholder="核准可留空；退回時必須填寫原因"></textarea>
+      <div class="review-actions">
+        <button formaction="{% url 'approve_leave' leave_request.id %}" class="btn-enterprise success"><i class="bi bi-check2"></i>核准</button>
+        <button formaction="{% url 'reject_leave' leave_request.id %}" class="btn-enterprise danger"><i class="bi bi-x-lg"></i>退回</button>
+      </div>
+    </form>
+    {% else %}
+    <div class="empty-state compact"><span><i class="bi bi-check2-circle"></i></span><strong>此申請已處理</strong></div>
+    {% endif %}
+  </aside>
   {% endif %}
 </div>
 {% endblock %}
