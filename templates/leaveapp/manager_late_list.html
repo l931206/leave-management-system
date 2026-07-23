@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}晚到通知管理｜兆迪聯智科技有限公司{% endblock %}
+{% block content %}
+<section class="page-heading manager-heading">
+  <div>
+    <span class="eyebrow">MANAGER ATTENDANCE CENTER</span>
+    <h1>晚到通知管理</h1>
+    <p>查看所有晚到通知，並追蹤主管是否已查看。</p>
+  </div>
+</section>
+
+<section class="manager-stat-grid">
+  <a href="{% url 'manager_late_list' %}" class="manager-stat-card {% if viewed_filter == 'all' and date_filter == 'all' %}selected{% endif %}">
+    <small>全部通知</small><strong>{{ counts.all }}</strong><span>所有日期</span>
+  </a>
+  <a href="?date=today" class="manager-stat-card {% if date_filter == 'today' %}selected{% endif %}">
+    <small>今日通知</small><strong>{{ counts.today }}</strong><span>今日晚到</span>
+  </a>
+  <a href="?viewed=unviewed" class="manager-stat-card {% if viewed_filter == 'unviewed' %}selected{% endif %}">
+    <small>尚未查看</small><strong>{{ counts.unviewed }}</strong><span>需要確認</span>
+  </a>
+  <a href="?viewed=viewed" class="manager-stat-card {% if viewed_filter == 'viewed' %}selected{% endif %}">
+    <small>已查看</small><strong>{{ counts.viewed }}</strong><span>完成確認</span>
+  </a>
+</section>
+
+<article class="enterprise-panel manager-list-panel">
+  <header class="manager-toolbar">
+    <form method="get" class="manager-filter-form">
+      <div class="manager-search">
+        <i class="bi bi-search"></i>
+        <input type="search" name="q" value="{{ query }}" placeholder="搜尋員工或晚到原因">
+      </div>
+      <select name="date">
+        <option value="all" {% if date_filter == "all" %}selected{% endif %}>所有日期</option>
+        <option value="today" {% if date_filter == "today" %}selected{% endif %}>僅顯示今日</option>
+      </select>
+      <select name="viewed">
+        <option value="all" {% if viewed_filter == "all" %}selected{% endif %}>全部狀態</option>
+        <option value="unviewed" {% if viewed_filter == "unviewed" %}selected{% endif %}>尚未查看</option>
+        <option value="viewed" {% if viewed_filter == "viewed" %}selected{% endif %}>已查看</option>
+      </select>
+      <button class="btn-enterprise primary" type="submit"><i class="bi bi-funnel"></i>套用</button>
+      <a class="btn-enterprise secondary" href="{% url 'manager_late_list' %}">清除</a>
+    </form>
+  </header>
+
+  {% if late_notices %}
+  <div class="manager-late-grid">
+    {% for notice in late_notices %}
+    <article class="manager-late-card {% if notice.viewed %}viewed{% endif %}">
+      <header>
+        <div class="person-cell">
+          <span class="person-avatar">{{ notice.employee.last_name|default:notice.employee.username|slice:":1" }}</span>
+          <span><strong>{{ notice.employee.get_full_name|default:notice.employee.username }}</strong><small>{{ notice.created_at|date:"Y/m/d H:i" }} 送出</small></span>
+        </div>
+        <span class="arrival">{{ notice.expected_arrival|time:"H:i" }}</span>
+      </header>
+      <div class="manager-late-date"><i class="bi bi-calendar3"></i>{{ notice.date|date:"Y/m/d" }}</div>
+      <p>{{ notice.reason }}</p>
+      <footer>
+        {% if notice.viewed %}
+        <span class="viewed-text"><i class="bi bi-check2-circle"></i>主管已查看</span>
+        {% else %}
+        <form method="post" action="{% url 'mark_late_viewed' notice.id %}">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <button class="btn-enterprise primary" type="submit"><i class="bi bi-eye"></i>標記已查看</button>
+        </form>
+        {% endif %}
+      </footer>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <span><i class="bi bi-search"></i></span>
+    <strong>找不到符合條件的晚到通知</strong>
+    <p>請調整搜尋文字或篩選條件。</p>
+  </div>
+  {% endif %}
+</article>
+{% endblock %}

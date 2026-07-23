@@ -1,0 +1,36 @@
+Sprint 5－整理後完整專案＋主管專區
+
+這一包是完整專案，不是單一覆蓋包。
+
+已整理：
+- 移除 .git、.venv、staticfiles、快取檔
+- 快速啟動腳本移到 scripts/
+- 程式檢查結果移到 docs/Testing/
+- 移除 docs 根目錄中的重複文件
+- 更新 README 與專案結構說明
+
+新增：
+- /manager/leave/ 請假管理頁
+- /manager/late/ 晚到通知管理頁
+- 搜尋、篩選、狀態統計
+- 側邊欄改成真正換頁
+- 晚到通知可直接標記已查看
+
+建議更新方式：
+1. 先備份目前專案。
+2. 解壓縮這一包。
+3. 建議直接以本包資料夾作為新版專案，不要整包硬塞進舊資料夾。
+4. 若要保留舊的 Git 紀錄，可把本包內容複製到原專案根目錄，但不要複製外層資料夾。
+5. 建立虛擬環境並安裝：
+   python -m venv .venv
+   .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+6. 執行：
+   .\.venv\Scripts\python.exe manage.py check
+   .\.venv\Scripts\python.exe manage.py migrate
+   .\.venv\Scripts\python.exe manage.py runserver
+7. 測試主管帳號：
+   manager / demo1234
+8. 確認後提交 Git：
+   git add .
+   git commit -m "Sprint 5: add manager management pages and clean project"
+   git push origin main

@@ -298,3 +298,169 @@ button,input,select,textarea{font:inherit}
   .my-request-row{grid-template-columns:65px 1fr auto}
   .my-request-row>i{display:none}
 }
+
+
+/* Sprint 5：主管專區 */
+.manager-heading{align-items:center}
+.manager-stat-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:16px;
+  margin-bottom:20px
+}
+.manager-stat-card{
+  display:block;
+  padding:20px;
+  border:1px solid var(--border);
+  border-radius:16px;
+  color:var(--text);
+  background:#fff;
+  box-shadow:var(--shadow);
+  transition:.2s
+}
+.manager-stat-card:hover{
+  color:var(--text);
+  transform:translateY(-2px);
+  border-color:var(--green-300)
+}
+.manager-stat-card.selected{
+  border-color:var(--green-500);
+  background:linear-gradient(180deg,#fff,var(--green-50));
+  box-shadow:0 0 0 3px rgba(72,168,95,.11),var(--shadow)
+}
+.manager-stat-card small,
+.manager-stat-card strong,
+.manager-stat-card span{display:block}
+.manager-stat-card small{color:var(--muted);font-size:10px;font-weight:700}
+.manager-stat-card strong{margin:4px 0;font-size:28px}
+.manager-stat-card span{color:#91a098;font-size:9px}
+
+.manager-list-panel{overflow:visible}
+.manager-toolbar{
+  padding:18px 20px;
+  border-bottom:1px solid #eaf2eb;
+  background:linear-gradient(180deg,#fff,var(--green-50))
+}
+.manager-filter-form{
+  display:grid;
+  grid-template-columns:minmax(260px,1fr) minmax(145px,auto) auto auto;
+  align-items:center;
+  gap:10px
+}
+.manager-filter-form:has(select:nth-of-type(2)){
+  grid-template-columns:minmax(240px,1fr) 145px 145px auto auto
+}
+.manager-search{position:relative}
+.manager-search i{
+  position:absolute;
+  left:13px;
+  top:50%;
+  transform:translateY(-50%);
+  color:#8aa391
+}
+.manager-search input,
+.manager-filter-form select{
+  width:100%;
+  min-height:44px;
+  border:1px solid #d6e5d9;
+  border-radius:10px;
+  color:var(--text);
+  background:#fff;
+  outline:none;
+  font-size:11px
+}
+.manager-search input{padding:0 13px 0 39px}
+.manager-filter-form select{padding:0 12px}
+.manager-search input:focus,
+.manager-filter-form select:focus{
+  border-color:#7bc48e;
+  box-shadow:0 0 0 4px rgba(111,190,131,.12)
+}
+
+.manager-table-wrap{overflow-x:auto}
+.manager-table{
+  width:100%;
+  min-width:920px;
+  border-collapse:collapse
+}
+.manager-table th{
+  padding:13px 18px;
+  color:var(--muted);
+  background:#fbfdfb;
+  border-bottom:1px solid #eaf2eb;
+  text-align:left;
+  font-size:9px;
+  font-weight:800;
+  white-space:nowrap
+}
+.manager-table td{
+  padding:14px 18px;
+  border-bottom:1px solid #edf3ee;
+  color:#395141;
+  font-size:10px;
+  vertical-align:middle
+}
+.manager-table tbody tr:hover{background:#fbfefb}
+.manager-table td>strong,
+.manager-table td>small{display:block}
+.manager-table td>small{margin-top:3px;color:var(--muted);font-size:8px}
+
+.manager-late-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:16px;
+  padding:20px
+}
+.manager-late-card{
+  padding:18px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  background:#fff;
+  transition:.2s
+}
+.manager-late-card:hover{
+  border-color:var(--green-300);
+  transform:translateY(-1px)
+}
+.manager-late-card.viewed{background:#fafcfa;opacity:.78}
+.manager-late-card>header,
+.manager-late-card>footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px
+}
+.manager-late-card p{
+  min-height:42px;
+  margin:13px 0;
+  color:#506657;
+  font-size:11px;
+  line-height:1.7
+}
+.manager-late-date{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin-top:13px;
+  color:var(--muted);
+  font-size:9px
+}
+
+@media(max-width:1100px){
+  .manager-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .manager-filter-form,
+  .manager-filter-form:has(select:nth-of-type(2)){
+    grid-template-columns:1fr 1fr
+  }
+  .manager-search{grid-column:1/-1}
+}
+@media(max-width:768px){
+  .manager-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .manager-filter-form,
+  .manager-filter-form:has(select:nth-of-type(2)){
+    grid-template-columns:1fr
+  }
+  .manager-search{grid-column:auto}
+  .manager-filter-form .btn-enterprise{width:100%}
+  .manager-late-grid{grid-template-columns:1fr;padding:14px}
+}

@@ -29,7 +29,7 @@
 
     <nav class="sidebar-nav">
       <span class="nav-label">工作台</span>
-      <a class="sidebar-link active" href="{% url 'dashboard' %}">
+      <a class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
         <i class="bi bi-house-door-fill"></i><span>首頁儀表板</span>
       </a>
 
@@ -48,11 +48,11 @@
       </a>
       {% else %}
       <span class="nav-label nav-label-spaced">主管功能</span>
-      <a class="sidebar-link" href="{% url 'dashboard' %}#pending">
-        <i class="bi bi-clipboard2-check"></i><span>請假審核</span>
+      <a class="sidebar-link {% if request.resolver_match.url_name == 'manager_leave_list' %}active{% endif %}" href="{% url 'manager_leave_list' %}">
+        <i class="bi bi-clipboard2-check"></i><span>請假管理</span>
       </a>
-      <a class="sidebar-link" href="{% url 'dashboard' %}#late">
-        <i class="bi bi-clock"></i><span>晚到通知</span>
+      <a class="sidebar-link {% if request.resolver_match.url_name == 'manager_late_list' %}active{% endif %}" href="{% url 'manager_late_list' %}">
+        <i class="bi bi-clock"></i><span>晚到通知管理</span>
       </a>
       <a class="sidebar-link" href="{% url 'export_csv' %}">
         <i class="bi bi-file-earmark-spreadsheet"></i><span>匯出報表</span>
@@ -122,7 +122,7 @@
     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
   </div>
   <div class="offcanvas-body">
-    <a class="sidebar-link active" href="{% url 'dashboard' %}">
+    <a class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
       <i class="bi bi-house-door-fill"></i><span>首頁儀表板</span>
     </a>
     {% if user.profile.role == "employee" %}
@@ -133,11 +133,11 @@
       <i class="bi bi-clock-history"></i><span>晚到通知</span>
     </a>
     {% else %}
-    <a class="sidebar-link" href="{% url 'dashboard' %}#pending">
-      <i class="bi bi-clipboard2-check"></i><span>請假審核</span>
+    <a class="sidebar-link" href="{% url 'manager_leave_list' %}">
+      <i class="bi bi-clipboard2-check"></i><span>請假管理</span>
     </a>
-    <a class="sidebar-link" href="{% url 'dashboard' %}#late">
-      <i class="bi bi-clock"></i><span>晚到通知</span>
+    <a class="sidebar-link" href="{% url 'manager_late_list' %}">
+      <i class="bi bi-clock"></i><span>晚到通知管理</span>
     </a>
     <a class="sidebar-link" href="{% url 'export_csv' %}">
       <i class="bi bi-file-earmark-spreadsheet"></i><span>匯出報表</span>

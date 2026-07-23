@@ -7,17 +7,19 @@ __pycache__/
 .venv/
 venv/
 
-# Django generated files
+# Django generated
 staticfiles/
+*.log
 
-# Environment variables
+# Secrets
 .env
 
-# Editor / OS
+# Editors / OS
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
 
-# Logs
-*.log
+# Local uploads (keep directory placeholder)
+media/*
+!media/.gitkeep

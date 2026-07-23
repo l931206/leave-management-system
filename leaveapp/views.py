@@ -258,8 +258,128 @@ def mark_late_viewed(request, pk):
     notice.viewed = True
     notice.save(update_fields=["viewed"])
     messages.success(request, "已標記為查看。")
-    return redirect("dashboard")
+    next_url = request.POST.get("next", "").strip()
+    if next_url.startswith("/"):
+        return redirect(next_url)
+    return redirect("manager_late_list")
 
+
+
+def _manager_leave_queryset(user):
+    """Return leave requests visible to the current manager or administrator."""
+    if user.profile.role == Profile.ROLE_ADMIN:
+        return LeaveRequest.objects.all()
+    return LeaveRequest.objects.filter(manager=user)
+
+
+def _manager_late_queryset(user):
+    """Return late notices visible to the current manager or administrator."""
+    if user.profile.role == Profile.ROLE_ADMIN:
+        return LateNotice.objects.all()
+    return LateNotice.objects.filter(manager=user)
+
+
+@login_required
+@manager_required
+def manager_leave_list(request):
+    """Manager leave-management page with search and status filtering."""
+    query = request.GET.get("q", "").strip()
+    status = request.GET.get("status", "all").strip()
+
+    requests_qs = _manager_leave_queryset(request.user).select_related(
+        "employee",
+        "leave_type",
+        "manager",
+    )
+
+    if query:
+        requests_qs = requests_qs.filter(
+            Q(employee__username__icontains=query)
+            | Q(employee__first_name__icontains=query)
+            | Q(employee__last_name__icontains=query)
+            | Q(leave_type__name__icontains=query)
+            | Q(reason__icontains=query)
+        )
+
+    valid_statuses = {
+        LeaveRequest.STATUS_PENDING,
+        LeaveRequest.STATUS_APPROVED,
+        LeaveRequest.STATUS_REJECTED,
+        LeaveRequest.STATUS_CANCELLED,
+    }
+    if status in valid_statuses:
+        requests_qs = requests_qs.filter(status=status)
+
+    all_visible = _manager_leave_queryset(request.user)
+    counts = {
+        "all": all_visible.count(),
+        "pending": all_visible.filter(status=LeaveRequest.STATUS_PENDING).count(),
+        "approved": all_visible.filter(status=LeaveRequest.STATUS_APPROVED).count(),
+        "rejected": all_visible.filter(status=LeaveRequest.STATUS_REJECTED).count(),
+        "cancelled": all_visible.filter(status=LeaveRequest.STATUS_CANCELLED).count(),
+    }
+
+    return render(
+        request,
+        "leaveapp/manager_leave_list.html",
+        {
+            "leave_requests": requests_qs.order_by("-created_at"),
+            "query": query,
+            "status_filter": status,
+            "counts": counts,
+        },
+    )
+
+
+@login_required
+@manager_required
+def manager_late_list(request):
+    """Manager late-notice page with search and viewed-state filtering."""
+    query = request.GET.get("q", "").strip()
+    viewed = request.GET.get("viewed", "all").strip()
+    date_filter = request.GET.get("date", "all").strip()
+    today = timezone.localdate()
+
+    notices = _manager_late_queryset(request.user).select_related(
+        "employee",
+        "manager",
+    )
+
+    if query:
+        notices = notices.filter(
+            Q(employee__username__icontains=query)
+            | Q(employee__first_name__icontains=query)
+            | Q(employee__last_name__icontains=query)
+            | Q(reason__icontains=query)
+        )
+
+    if viewed == "viewed":
+        notices = notices.filter(viewed=True)
+    elif viewed == "unviewed":
+        notices = notices.filter(viewed=False)
+
+    if date_filter == "today":
+        notices = notices.filter(date=today)
+
+    all_visible = _manager_late_queryset(request.user)
+    counts = {
+        "all": all_visible.count(),
+        "today": all_visible.filter(date=today).count(),
+        "viewed": all_visible.filter(viewed=True).count(),
+        "unviewed": all_visible.filter(viewed=False).count(),
+    }
+
+    return render(
+        request,
+        "leaveapp/manager_late_list.html",
+        {
+            "late_notices": notices.order_by("-date", "-created_at"),
+            "query": query,
+            "viewed_filter": viewed,
+            "date_filter": date_filter,
+            "counts": counts,
+        },
+    )
 
 @login_required
 @manager_required

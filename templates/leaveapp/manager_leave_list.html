@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}請假管理｜兆迪聯智科技有限公司{% endblock %}
+{% block content %}
+<section class="page-heading manager-heading">
+  <div>
+    <span class="eyebrow">MANAGER LEAVE CENTER</span>
+    <h1>請假管理</h1>
+    <p>集中查看、搜尋與處理員工請假申請。</p>
+  </div>
+  <a class="btn-enterprise secondary" href="{% url 'export_csv' %}">
+    <i class="bi bi-download"></i>匯出 CSV
+  </a>
+</section>
+
+<section class="manager-stat-grid">
+  <a href="?status=all" class="manager-stat-card {% if status_filter == 'all' %}selected{% endif %}">
+    <small>全部申請</small><strong>{{ counts.all }}</strong><span>所有狀態</span>
+  </a>
+  <a href="?status=pending" class="manager-stat-card {% if status_filter == 'pending' %}selected{% endif %}">
+    <small>待審核</small><strong>{{ counts.pending }}</strong><span>需要處理</span>
+  </a>
+  <a href="?status=approved" class="manager-stat-card {% if status_filter == 'approved' %}selected{% endif %}">
+    <small>已核准</small><strong>{{ counts.approved }}</strong><span>核准紀錄</span>
+  </a>
+  <a href="?status=rejected" class="manager-stat-card {% if status_filter == 'rejected' %}selected{% endif %}">
+    <small>已退回</small><strong>{{ counts.rejected }}</strong><span>退回紀錄</span>
+  </a>
+</section>
+
+<article class="enterprise-panel manager-list-panel">
+  <header class="manager-toolbar">
+    <form method="get" class="manager-filter-form">
+      <div class="manager-search">
+        <i class="bi bi-search"></i>
+        <input type="search" name="q" value="{{ query }}" placeholder="搜尋員工、假別或請假原因">
+      </div>
+      <select name="status">
+        <option value="all" {% if status_filter == "all" %}selected{% endif %}>全部狀態</option>
+        <option value="pending" {% if status_filter == "pending" %}selected{% endif %}>待審核</option>
+        <option value="approved" {% if status_filter == "approved" %}selected{% endif %}>已核准</option>
+        <option value="rejected" {% if status_filter == "rejected" %}selected{% endif %}>已退回</option>
+        <option value="cancelled" {% if status_filter == "cancelled" %}selected{% endif %}>已取消</option>
+      </select>
+      <button class="btn-enterprise primary" type="submit"><i class="bi bi-funnel"></i>套用</button>
+      <a class="btn-enterprise secondary" href="{% url 'manager_leave_list' %}">清除</a>
+    </form>
+  </header>
+
+  {% if leave_requests %}
+  <div class="manager-table-wrap">
+    <table class="manager-table">
+      <thead>
+        <tr>
+          <th>員工</th><th>假別</th><th>請假期間</th><th>時數</th><th>狀態</th><th>送出時間</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in leave_requests %}
+        <tr>
+          <td>
+            <div class="person-cell">
+              <span class="person-avatar">{{ item.employee.last_name|default:item.employee.username|slice:":1" }}</span>
+              <span><strong>{{ item.employee.get_full_name|default:item.employee.username }}</strong><small>{{ item.employee.username }}</small></span>
+            </div>
+          </td>
+          <td><span class="type-badge">{{ item.leave_type.name }}</span></td>
+          <td><strong>{{ item.start_datetime|date:"Y/m/d H:i" }}</strong><small>至 {{ item.end_datetime|date:"Y/m/d H:i" }}</small></td>
+          <td>{{ item.duration_hours }} 小時</td>
+          <td><span class="status-badge {{ item.status }}">{{ item.get_status_display }}</span></td>
+          <td>{{ item.created_at|date:"Y/m/d H:i" }}</td>
+          <td><a class="review-link" href="{% url 'leave_detail' item.id %}">查看<i class="bi bi-arrow-right"></i></a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <span><i class="bi bi-search"></i></span>
+    <strong>找不到符合條件的請假申請</strong>
+    <p>請調整搜尋文字或篩選條件。</p>
+  </div>
+  {% endif %}
+</article>
+{% endblock %}

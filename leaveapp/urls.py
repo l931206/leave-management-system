@@ -5,6 +5,8 @@ from . import views
 urlpatterns = [
     path("", views.dashboard, name="dashboard"),
     path("leave/new/", views.create_leave, name="create_leave"),
+    path("manager/leave/", views.manager_leave_list, name="manager_leave_list"),
+    path("manager/late/", views.manager_late_list, name="manager_late_list"),
     path("leave/<int:pk>/", views.leave_detail, name="leave_detail"),
     path("leave/<int:pk>/cancel/", views.cancel_leave, name="cancel_leave"),
     path("leave/<int:pk>/approve/", views.approve_leave, name="approve_leave"),
