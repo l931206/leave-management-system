@@ -90,9 +90,19 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
+# Render's normal filesystem is ephemeral. When CLOUDINARY_URL is configured,
+# user-uploaded leave attachments are stored persistently on Cloudinary.
+# Local development keeps using the normal media/ folder when the variable is
+# absent, so no Cloudinary account is required just to run the project locally.
+DEFAULT_MEDIA_STORAGE = (
+    "leaveapp.storage.CloudinaryRawStorage"
+    if os.getenv("CLOUDINARY_URL")
+    else "django.core.files.storage.FileSystemStorage"
+)
+
 STORAGES = {
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "BACKEND": DEFAULT_MEDIA_STORAGE,
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",

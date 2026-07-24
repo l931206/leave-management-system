@@ -30,7 +30,13 @@
       <div class="detail-item full"><small>請假原因</small><p>{{ leave_request.reason|linebreaksbr }}</p></div>
       <div class="detail-item"><small>直屬主管</small><strong>{% if leave_request.manager %}{{ leave_request.manager.get_full_name|default:leave_request.manager.username }}{% else %}未設定{% endif %}</strong></div>
       {% if leave_request.attachment %}
-      <div class="detail-item"><small>附件</small><a class="attachment-link" href="{{ leave_request.attachment.url }}" target="_blank"><i class="bi bi-paperclip"></i>開啟附件</a></div>
+      <div class="detail-item">
+        <small>附件</small>
+        <a class="attachment-link" href="{% url 'leave_attachment' leave_request.id %}" target="_blank" rel="noopener">
+          <i class="bi bi-paperclip"></i>安全開啟附件
+        </a>
+        <span class="attachment-help">若舊檔案已遺失，系統會返回本頁並顯示提示。</span>
+      </div>
       {% endif %}
       {% if leave_request.manager_comment %}
       <div class="detail-item full manager-comment"><small>主管備註</small><p>{{ leave_request.manager_comment|linebreaksbr }}</p></div>

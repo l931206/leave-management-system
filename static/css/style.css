@@ -464,3 +464,12 @@ button,input,select,textarea{font:inherit}
   .manager-filter-form .btn-enterprise{width:100%}
   .manager-late-grid{grid-template-columns:1fr;padding:14px}
 }
+
+/* Sprint 6：附件永久儲存與遺失檔案防呆 */
+.attachment-help{
+  display:block;
+  margin-top:7px;
+  color:var(--muted);
+  font-size:8px;
+  line-height:1.5
+}

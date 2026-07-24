@@ -8,6 +8,7 @@ urlpatterns = [
     path("manager/leave/", views.manager_leave_list, name="manager_leave_list"),
     path("manager/late/", views.manager_late_list, name="manager_late_list"),
     path("leave/<int:pk>/", views.leave_detail, name="leave_detail"),
+    path("leave/<int:pk>/attachment/", views.leave_attachment, name="leave_attachment"),
     path("leave/<int:pk>/cancel/", views.cancel_leave, name="cancel_leave"),
     path("leave/<int:pk>/approve/", views.approve_leave, name="approve_leave"),
     path("leave/<int:pk>/reject/", views.reject_leave, name="reject_leave"),

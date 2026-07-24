@@ -1,4 +1,5 @@
 import csv
+import logging
 from decimal import Decimal
 
 from django.contrib import messages
@@ -21,10 +22,20 @@ from .models import (
 )
 
 
+logger = logging.getLogger(__name__)
+
+
 def _is_manager_for(user, employee):
     if user.profile.role == Profile.ROLE_ADMIN:
         return True
     return employee.profile.manager_id == user.id
+
+
+def _can_view_leave(user, leave_request):
+    return (
+        leave_request.employee_id == user.id
+        or _is_manager_for(user, leave_request.employee)
+    )
 
 
 @login_required
@@ -107,11 +118,7 @@ def leave_detail(request, pk):
         LeaveRequest.objects.select_related("employee", "manager", "leave_type"),
         pk=pk,
     )
-    allowed = (
-        leave_request.employee_id == request.user.id
-        or _is_manager_for(request.user, leave_request.employee)
-    )
-    if not allowed:
+    if not _can_view_leave(request.user, leave_request):
         messages.error(request, "你沒有權限查看這筆申請。")
         return redirect("dashboard")
 
@@ -120,6 +127,36 @@ def leave_detail(request, pk):
         "leaveapp/leave_detail.html",
         {"leave_request": leave_request, "review_form": ReviewForm()},
     )
+
+
+@login_required
+def leave_attachment(request, pk):
+    """Open an attachment safely without exposing a broken storage URL."""
+    leave_request = get_object_or_404(
+        LeaveRequest.objects.select_related("employee"),
+        pk=pk,
+    )
+    if not _can_view_leave(request.user, leave_request):
+        messages.error(request, "你沒有權限查看這份附件。")
+        return redirect("dashboard")
+
+    attachment = leave_request.attachment
+    if not attachment or not attachment.name:
+        messages.warning(request, "這筆請假申請沒有附件。")
+        return redirect("leave_detail", pk=pk)
+
+    try:
+        if not attachment.storage.exists(attachment.name):
+            messages.warning(
+                request,
+                "這份舊附件已遺失，請申請人重新上傳或補交。",
+            )
+            return redirect("leave_detail", pk=pk)
+        return redirect(attachment.url)
+    except Exception:
+        logger.exception("Unable to open leave attachment for request %s", pk)
+        messages.error(request, "附件目前無法開啟，請稍後再試或聯絡管理者。")
+        return redirect("leave_detail", pk=pk)
 
 
 @login_required
