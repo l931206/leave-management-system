@@ -4,7 +4,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-only-change-me-before-production")
-DEBUG = os.getenv("DEBUG", "True").lower() in ("1", "true", "yes", "on")
+DEBUG = os.getenv("DEBUG", "False").lower() in ("1", "true", "yes", "on")
 
 render_hostname = os.getenv("RENDER_EXTERNAL_HOSTNAME", "")
 allowed_hosts_env = os.getenv("ALLOWED_HOSTS", "")
